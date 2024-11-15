@@ -2,16 +2,16 @@
 import os
 import shutil
 from datetime import datetime
-from configs.path_config import DB_PATH, DB_BACKUP_FOLDER
-from configs.messages_config import DB_RESET_SUCCESS, DB_REMOVED_SUCCESS, DB_RESET_ERROR, DB_BACKUP_SUCCESS
 from utils.custom_logging import logger, error_handler
+from configs.config_manager import ConfigurationManager
 from ..schema_manager import SchemaManager
 from .db_custom_exceptions import InitializationError, QueryExecutionError
 
 class ResetDatabase:
     def __init__(self, connections):
-        self.db_path = DB_PATH
-        self.backup_folder = DB_BACKUP_FOLDER
+        self.config_manager = ConfigurationManager()  # Initialize ConfigurationManager
+        self.db_path = self.config_manager.get_path_settings()["DB_PATH"]  # Get DB_PATH through ConfigurationManager
+        self.backup_folder = self.config_manager.get_path_settings()["DB_BACKUP_FOLDER"]  # Get DB_BACKUP_FOLDER through ConfigurationManager
         self.connections = connections
         self.schema_manager = SchemaManager()
 
@@ -20,31 +20,28 @@ class ResetDatabase:
         logger.info("Resetting database...")
         conn = None
         try:
-            # Close all connections before removing the database file
             self.connections.close_all_connections()
             
             if os.path.exists(self.db_path):
-                # Backup the existing database
                 self._backup_database()
-                
                 logger.info(f"Removing existing database file: {self.db_path}")
                 os.remove(self.db_path)
-                logger.info(DB_REMOVED_SUCCESS)
+                logger.info(self.config_manager.get_db_error_messages()["DB_REMOVED_SUCCESS"])  # Access message through config manager
             else:
                 logger.warning(f"Database file not found at {self.db_path}")
 
-            # Load schema and create new database
             logger.info("Creating new database with schema.")
             conn = self.connections.get_connection()
             schema_script = self.schema_manager.load_schema()
+            
             if not schema_script:
                 raise InitializationError("Failed to load schema script.")
 
-            # Execute the schema script to create tables
             conn.executescript(schema_script)
             conn.commit()
-            logger.info(DB_RESET_SUCCESS)
-            return True, DB_RESET_SUCCESS
+            
+            logger.info(self.config_manager.get_db_error_messages()["DB_RESET_SUCCESS"])  # Access message through config manager
+            return True, self.config_manager.get_db_error_messages()["DB_RESET_SUCCESS"]
             
         except InitializationError as ie:
             error_msg = f"Initialization error: {str(ie)}"
@@ -57,10 +54,8 @@ class ResetDatabase:
         except Exception as e:
             error_msg = f"Unexpected error during database reset: {str(e)}"
             logger.error(error_msg)
-            return False, DB_RESET_ERROR.format(error_msg)
-        finally:
-            if conn:
-                conn.close()  # Ensure connection is closed after operation
+            
+            return False, self.config_manager.get_db_error_messages()["DB_RESET_ERROR"].format(error_msg)  # Access message through config manager
 
     def _backup_database(self):
         if not os.path.exists(self.backup_folder):
@@ -71,4 +66,4 @@ class ResetDatabase:
         backup_path = os.path.join(self.backup_folder, backup_filename)
         
         shutil.copy2(self.db_path, backup_path)
-        logger.info(DB_BACKUP_SUCCESS.format(backup_path))
+        logger.info(self.config_manager.get_db_error_messages()["DB_BACKUP_SUCCESS"].format(backup_path))  # Ensure this message is defined in messages_config.py

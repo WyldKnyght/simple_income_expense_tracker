@@ -1,4 +1,4 @@
-# src/configs/db_default_data.py
+# src/configs/config_modules/db_default_data.py
 
 DEFAULT_CATEGORIES = [
     {"name": "Housing", "subcategories": [

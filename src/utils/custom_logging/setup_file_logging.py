@@ -1,11 +1,14 @@
 import os
 import logging
 from datetime import datetime
-from configs.path_config import EnvSettings
+from configs.config_manager import ConfigurationManager
 from .handlers import ConditionalFileHandler
 
 def setup_file_logging():
-    log_dir = os.path.join(os.path.dirname(EnvSettings.DB_PATH), 'logs')
+    config_manager = ConfigurationManager()  # Initialize ConfigurationManager
+    db_path = config_manager.get_path_settings()["DB_PATH"]  # Get DB_PATH through ConfigurationManager
+
+    log_dir = os.path.join(os.path.dirname(db_path), 'logs')
     os.makedirs(log_dir, exist_ok=True)
 
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")

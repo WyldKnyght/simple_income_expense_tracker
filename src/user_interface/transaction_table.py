@@ -1,3 +1,4 @@
+# src/User_interface/transaction_table.py
 from PyQt6.QtWidgets import QTableView
 
 class TransactionTableView(QTableView):

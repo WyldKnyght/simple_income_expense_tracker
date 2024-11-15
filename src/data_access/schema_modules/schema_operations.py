@@ -1,11 +1,13 @@
 # src/data_access/schema_modules/schema_operations.py
 import re
 from utils.custom_logging import logger, error_handler
-from configs.path_config import SCHEMA_PATH
+from configs.config_manager import ConfigurationManager
 
 class SchemaOperations:
     def __init__(self):
         self.schema = None
+        self.config_manager = ConfigurationManager()  # Initialize ConfigurationManager
+        self.schema_path = self.config_manager.get_path_settings()["SCHEMA_PATH"]  # Get SCHEMA_PATH through ConfigurationManager
 
     @error_handler
     def get_schema(self):
@@ -15,9 +17,9 @@ class SchemaOperations:
 
     @error_handler
     def read_schema_file(self):
-        logger.info(f"Reading schema file from {SCHEMA_PATH}")
+        logger.info(f"Reading schema file from {self.schema_path}")
         try:
-            with open(SCHEMA_PATH, 'r') as file:
+            with open(self.schema_path, 'r') as file:
                 content = file.read()
             logger.info("Schema file read successfully")
             return content
@@ -51,7 +53,6 @@ class SchemaOperations:
 
         return table_definitions
 
-    
     @error_handler
     def get_table_names(self):
         schema = self.get_schema()

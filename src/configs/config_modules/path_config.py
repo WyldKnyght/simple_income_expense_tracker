@@ -1,4 +1,4 @@
-# src/configs/path_config.py
+# src/configs/config_modules/path_config.py
 import os
 from dotenv import load_dotenv
 
@@ -26,3 +26,13 @@ env_settings = EnvSettings()
 # Expose the settings at the module level
 for attr in EnvSettings.SETTINGS:
     globals()[attr] = getattr(env_settings, attr)
+
+def get_path_settings():
+    """Return all path settings as a dictionary."""
+    return {
+        "PROJECT_ROOT": env_settings.PROJECT_ROOT,
+        "ENTRY_POINT": env_settings.ENTRY_POINT,
+        "DB_PATH": env_settings.DB_PATH,
+        "DB_BACKUP_FOLDER": env_settings.DB_BACKUP_FOLDER,
+        "SCHEMA_PATH": env_settings.SCHEMA_PATH,
+    }

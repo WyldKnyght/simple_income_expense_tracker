@@ -1,4 +1,4 @@
--- src/configs/db_schema.sql
+-- src/configs/config_modules/db_schema.sql
 
 -- Incomes table
 CREATE TABLE Incomes (

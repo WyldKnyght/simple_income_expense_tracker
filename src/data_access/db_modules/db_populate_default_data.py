@@ -1,17 +1,20 @@
 # src/data_access/db_modules/db_populate_default_data.py
-
-from configs.db_default_data import DEFAULT_CATEGORIES, DEFAULT_FREQUENCIES
+from configs.config_manager import ConfigurationManager
 from utils.custom_logging import logger, error_handler
 
 class DefaultDataPopulator:
     def __init__(self, db_manager):
         self.db_manager = db_manager
+        self.config_manager = ConfigurationManager()  # Initialize ConfigurationManager
 
     @error_handler
     def populate_all(self):
         try:
-            self._populate_categories(DEFAULT_CATEGORIES)
-            self._populate_frequencies(DEFAULT_FREQUENCIES)
+            default_categories = self.config_manager.get_default_categories()  # Get categories through config manager
+            default_frequencies = self.config_manager.get_default_frequencies()  # Get frequencies through config manager
+            
+            self._populate_categories(default_categories)
+            self._populate_frequencies(default_frequencies)
             logger.info("Default data populated successfully")
             return True, "Default data populated successfully"
         except Exception as e:

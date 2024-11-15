@@ -1,8 +1,7 @@
-# src/user_interface/main_window.py
-
-from PyQt6.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QTabWidget, QLabel, QStatusBar
+# src\User_interface\main_window.py
+from PyQt6.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QTabWidget, QLabel, QStatusBar, QHBoxLayout
 from utils.custom_logging import error_handler
-import configs.ui_constants as ui_const
+from configs.config_manager import ConfigurationManager
 from .menu_bar import MenuBar
 
 class MainWindow(QMainWindow):
@@ -10,8 +9,12 @@ class MainWindow(QMainWindow):
     def __init__(self, controller):
         super().__init__()
         self.controller = controller
-        self.setWindowTitle(ui_const.WINDOW_TITLE)
-        self.setGeometry(*ui_const.WINDOW_GEOMETRY)
+        self.config_manager = ConfigurationManager()  # Initialize ConfigurationManager
+        
+        # Access UI constants through ConfigurationManager
+        self.setWindowTitle(self.config_manager.get_ui_constants()["WINDOW_TITLE"])
+        self.setGeometry(*self.config_manager.get_ui_constants()["WINDOW_GEOMETRY"])
+        
         self.setup_ui()
 
     @error_handler
@@ -25,25 +28,59 @@ class MainWindow(QMainWindow):
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
 
-        layout = QVBoxLayout()
-        central_widget.setLayout(layout)
+        main_layout = QVBoxLayout()  # Main vertical layout
+        central_widget.setLayout(main_layout)
 
+        # Top section with summary widgets
+        top_layout = QHBoxLayout()  # Horizontal layout for summary widgets
+        main_layout.addLayout(top_layout)
+
+        # Add summary widgets (e.g., total income, total expenses, balance)
+        top_layout.addWidget(self.create_summary_widget("Total Income"))
+        top_layout.addWidget(self.create_summary_widget("Total Expenses"))
+        top_layout.addWidget(self.create_summary_widget("Balance"))
+
+        # Tab widget for different sections
         self.tab_widget = QTabWidget()
-        layout.addWidget(self.tab_widget)
+        main_layout.addWidget(self.tab_widget)
 
-        self.add_placeholder_tab(ui_const.TAB_DASHBOARD)
-        self.add_placeholder_tab(ui_const.TAB_INCOMES)
-        self.add_placeholder_tab(ui_const.TAB_EXPENSES)
-        self.add_placeholder_tab(ui_const.TAB_TRANSACTIONS)
-        self.add_placeholder_tab(ui_const.TAB_REPORTS)
+        # Setup tabs for different functionalities
+        self.add_placeholder_tab("Dashboard")
+        self.add_placeholder_tab("Incomes")
+        self.add_placeholder_tab("Expenses")
+        self.add_placeholder_tab("Transactions")
+        self.add_placeholder_tab("Reports")
+
+    @error_handler
+    def create_summary_widget(self, title):
+        """Create a summary widget with a title and placeholder value."""
+        widget = QWidget()
+        layout = QVBoxLayout()
+        widget.setLayout(layout)
+        
+        # Title label
+        title_label = QLabel(title)
+        
+        # Placeholder value (you can later replace this with actual data)
+        value_label = QLabel("$0.00")  
+        
+        layout.addWidget(title_label)
+        layout.addWidget(value_label)
+        
+        return widget
 
     @error_handler
     def add_placeholder_tab(self, name):
+        """Add a placeholder tab to the tab widget."""
         tab = QWidget()
         tab_layout = QVBoxLayout()
-        label = QLabel(ui_const.PLACEHOLDER_TEXT.format(name))
+        
+        label = QLabel(self.config_manager.get_ui_constants()["PLACEHOLDER_TEXT"].format(name))  # Access placeholder text through config manager
+        
         tab_layout.addWidget(label)
+        
         tab.setLayout(tab_layout)
+        
         self.tab_widget.addTab(tab, name)
 
     @error_handler
@@ -55,4 +92,5 @@ class MainWindow(QMainWindow):
     def setup_status_bar(self):
         status_bar = QStatusBar()
         self.setStatusBar(status_bar)
-        status_bar.showMessage(ui_const.STATUS_READY)
+        
+        status_bar.showMessage(self.config_manager.get_ui_constants()["STATUS_READY"])  # Access status message through config manager
